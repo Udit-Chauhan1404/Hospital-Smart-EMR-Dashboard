@@ -124,10 +124,10 @@ let patients = [
 ];
 // ================== End Demo Patients ==================
 
-let activeMRN = null;
-let charts = {};
+let activeMRN=null;
+let charts={};
 
-// =============== Render Patient List ===============
+// Render patient list
 function renderPatientList(){
   const list=document.getElementById("patientList");
   const search=document.getElementById("search").value.toLowerCase();
@@ -136,14 +136,12 @@ function renderPatientList(){
     const div=document.createElement("div");
     div.className="patient-card";
     div.onclick=()=>selectPatient(p.mrn);
-    div.innerHTML=`<div class="patient-avatar">${p.name[0]}</div>
-      <div class="patient-meta"><h3>${p.name}</h3>
-      <p>${p.age} · ${p.gender}</p><small>${p.cond}</small></div>`;
+    div.innerHTML=`<div class="patient-avatar">${p.name[0]}</div><div class="patient-meta"><h3>${p.name}</h3><p>${p.age} · ${p.gender}</p><small>${p.cond}</small></div>`;
     list.appendChild(div);
   });
 }
 
-// =============== Select Patient ===============
+// Select patient
 function selectPatient(mrn){
   activeMRN=mrn;
   const patient=patients.find(p=>p.mrn===mrn);
@@ -152,81 +150,89 @@ function selectPatient(mrn){
   document.getElementById("d_name").innerText=patient.name;
   document.getElementById("d_meta").innerText=`${patient.age} years · ${patient.gender}`;
   document.getElementById("d_mrn").innerText=patient.mrn;
+  document.getElementById("d_risk").innerText=patient.tests.length>0?"Medium":"Low";
   renderTests(); renderNotes(); renderInsights(); renderCharts(); renderTimeline();
 }
 
-// =============== Render Tests ===============
+// Render tests
 function renderTests(){
   const patient=patients.find(p=>p.mrn===activeMRN);
   document.getElementById("testsList").innerHTML=patient.tests.map(t=>`<div>${t.date}: ${t.type} = ${t.value} (${t.note})</div>`).join("");
 }
 
-// =============== Render Notes ===============
+// Render notes
 function renderNotes(){
   const patient=patients.find(p=>p.mrn===activeMRN);
   document.getElementById("notesArea").value=patient.notes.map(n=>`${n.date}: ${n.text}`).join("\n");
 }
 
-// =============== Render Insights ===============
+// Render insights
 function renderInsights(){
   const patient=patients.find(p=>p.mrn===activeMRN);
   let insights=[];
   patient.tests.forEach(t=>{
-    if(t.type==="glucose"&&t.value>140)insights.push("⚠ High Glucose detected.");
-    if(t.type==="cholesterol"&&t.value>200)insights.push("⚠ High Cholesterol detected.");
-    if(t.type==="BP"&&t.note==="Systolic"&&t.value>130)insights.push("⚠ High Blood Pressure (Systolic).");
-    if(t.type==="BP"&&t.note==="Diastolic"&&t.value>85)insights.push("⚠ High Blood Pressure (Diastolic).");
+    if(t.type==="glucose" && t.value>140) insights.push("⚠ High Glucose detected.");
+    if(t.type==="cholesterol" && t.value>200) insights.push("⚠ High Cholesterol detected.");
+    if(t.type==="BP" && t.note==="Systolic" && t.value>130) insights.push("⚠ High Blood Pressure (Systolic).");
+    if(t.type==="BP" && t.note==="Diastolic" && t.value>85) insights.push("⚠ High Blood Pressure (Diastolic).");
   });
   document.getElementById("insightsArea").innerHTML="<h3>🤖 AI Insights</h3>"+(insights.length?insights.map(i=>`<p>${i}</p>`).join(""):"<p>No issues.</p>");
 }
 
-// =============== Render Timeline ===============
+// Render charts
+function renderCharts(){
+  const ctx=document.getElementById("vitalsChart").getContext("2d");
+  if(charts.vitals) charts.vitals.destroy();
+  const patient=patients.find(p=>p.mrn===activeMRN);
+  if(!patient) return;
+  const labels=[...new Set(patient.tests.map(t=>t.date))].sort();
+  const selectedVital=document.getElementById("vitalSelect").value;
+  const glucoseData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="glucose")?.value || null);
+  const cholesterolData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="cholesterol")?.value || null);
+  const bpSystolicData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="BP" && t.note==="Systolic")?.value || null);
+  const bpDiastolicData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="BP" && t.note==="Diastolic")?.value || null);
+  const allDatasets={ glucose:{label:"Glucose",data:glucoseData,borderColor:"#22c55e",tension:0.3,fill:true}, cholesterol:{label:"Cholesterol",data:cholesterolData,borderColor:"#f59e0b",tension:0.3,fill:true}, BP:{label:"Blood Pressure (Systolic)",data:bpSystolicData,borderColor:"#ef4444",tension:0.3,fill:false}, BP2:{label:"Blood Pressure (Diastolic)",data:bpDiastolicData,borderColor:"#f87171",tension:0.3,fill:false}};
+  let datasets=[];
+  if(selectedVital==="all") datasets=[allDatasets.glucose,allDatasets.cholesterol,allDatasets.BP,allDatasets.BP2];
+  else if(selectedVital==="glucose") datasets=[allDatasets.glucose];
+  else if(selectedVital==="cholesterol") datasets=[allDatasets.cholesterol];
+  else if(selectedVital==="BP") datasets=[allDatasets.BP,allDatasets.BP2];
+  charts.vitals=new Chart(ctx,{type:'line',data:{labels, datasets}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+}
+
+// Render timeline
 function renderTimeline(){
   const patient=patients.find(p=>p.mrn===activeMRN);
   const timeline=document.getElementById("timeline");
   timeline.innerHTML="";
-  patient.tests.concat(patient.notes).sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(ev=>{
+  const events=[];
+  patient.tests.forEach(t=>events.push({date:t.date,desc:`Test: ${t.type} = ${t.value} (${t.note})`}));
+  patient.notes.forEach(n=>events.push({date:n.date,desc:`Note: ${n.text}`}));
+  events.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const ul=document.createElement("ul");
+  events.forEach(ev=>{
     const li=document.createElement("li");
-    li.innerHTML=`<span class="dot"></span><span class="event">${ev.date}: ${ev.type?ev.type+"="+ev.value:ev.text}</span>`;
-    timeline.appendChild(li);
+    li.innerHTML=`<span class="dot"></span><span class="event">${ev.date}: ${ev.desc}</span>`;
+    ul.appendChild(li);
   });
+  timeline.appendChild(ul);
 }
 
-// =============== Charts ===============
-function renderCharts(){
-  const ctx=document.getElementById("vitalsChart").getContext("2d");
-  if(charts.vitals)charts.vitals.destroy();
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  if(!patient)return;
-  const labels=[...new Set(patient.tests.map(t=>t.date))].sort();
-  const glucoseData=labels.map(d=>patient.tests.find(t=>t.date===d&&t.type==="glucose")?.value||null);
-  const cholesterolData=labels.map(d=>patient.tests.find(t=>t.date===d&&t.type==="cholesterol")?.value||null);
-  const bpSystolicData=labels.map(d=>patient.tests.find(t=>t.date===d&&t.type==="BP"&&t.note==="Systolic")?.value||null);
-  const bpDiastolicData=labels.map(d=>patient.tests.find(t=>t.date===d&&t.type==="BP"&&t.note==="Diastolic")?.value||null);
-  const datasets=[];
-  const sel=document.getElementById("vitalSelect").value;
-  if(sel==="all"||sel==="glucose")datasets.push({label:"Glucose",data:glucoseData,borderColor:"#22c55e",tension:0.3,fill:true});
-  if(sel==="all"||sel==="cholesterol")datasets.push({label:"Cholesterol",data:cholesterolData,borderColor:"#f59e0b",tension:0.3,fill:true});
-  if(sel==="all"||sel==="BP")datasets.push({label:"BP Systolic",data:bpSystolicData,borderColor:"#ef4444",tension:0.3,fill:false});
-  if(sel==="all"||sel==="BP")datasets.push({label:"BP Diastolic",data:bpDiastolicData,borderColor:"#3b82f6",tension:0.3,fill:false});
-  charts.vitals=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:'top'}}}});
-}
-
-// =============== Add Patient ===============
+// ================ Add Patient =================
 function openAddPatient(){document.getElementById("addPatientCard").classList.add("active");}
 function closeAddPatient(){document.getElementById("addPatientCard").classList.remove("active");}
 function addPatientFromForm(){
-  const name=document.getElementById("newName").value;
-  const age=document.getElementById("newAge").value;
-  const gender=document.getElementById("newGender").value;
-  const cond=document.getElementById("newCond").value;
-  if(!name||!age||!gender) return alert("Fill all fields!");
-  const mrn=patients.length?Math.max(...patients.map(p=>p.mrn))+1:1001;
-  patients.push({mrn,name,age:Number(age),gender,cond,tests:[],notes:[]});
-  closeAddPatient(); renderPatientList();
+  const n=document.getElementById("newName").value;
+  const a=document.getElementById("newAge").value;
+  const g=document.getElementById("newGender").value;
+  const c=document.getElementById("newCond").value;
+  if(!n||!a||!g||!c){alert("All fields required."); return;}
+  const mrn=Math.floor(Math.random()*9000)+1000;
+  patients.push({mrn,name:n,age:a,gender:g,cond:c,tests:[],notes:[]});
+  renderPatientList(); closeAddPatient();
 }
 
-// =============== Add Test ===============
+// ================ Add Test =================
 function openAddTest(){document.getElementById("formAddTest").classList.add("active");}
 function closeAddTest(){document.getElementById("formAddTest").classList.remove("active");}
 function addTestToActive(){
@@ -234,27 +240,26 @@ function addTestToActive(){
   const value=document.getElementById("testValue").value;
   const note=document.getElementById("testNote").value;
   const date=document.getElementById("testDate").value;
-  if(!type||!value||!date) return alert("Fill all fields!");
+  if(!type||!value||!date){alert("Test type, value and date required."); return;}
   const patient=patients.find(p=>p.mrn===activeMRN);
-  patient.tests.push({type,value:Number(value),note,date});
-  closeAddTest(); renderTests(); renderInsights(); renderCharts(); renderTimeline();
+  patient.tests.push({type,value,note,date});
+  renderTests(); renderCharts(); renderInsights(); renderTimeline(); closeAddTest();
 }
 
-// =============== Add Note ===============
+// ================ Add Note =================
 function openAddNote(){document.getElementById("formAddNote").classList.add("active");}
 function closeAddNote(){document.getElementById("formAddNote").classList.remove("active");}
 function addNoteToActive(){
   const text=document.getElementById("noteText").value;
-  if(!text) return alert("Enter note");
+  if(!text){alert("Note cannot be empty."); return;}
   const patient=patients.find(p=>p.mrn===activeMRN);
-  const date=new Date().toISOString().split("T")[0];
-  patient.notes.push({text,date});
-  document.getElementById("noteText").value="";
-  closeAddNote(); renderNotes(); renderTimeline();
+  const today=new Date().toISOString().split("T")[0];
+  patient.notes.push({text,date:today});
+  renderNotes(); renderInsights(); renderTimeline(); closeAddNote();
 }
 
-// =============== Sidebar toggle for mobile ===============
+// Toggle Sidebar
 function toggleSidebar(){document.getElementById("sidebar").classList.toggle("active");}
 
-// =============== Initial render ===============
+// Initial render
 renderPatientList();
