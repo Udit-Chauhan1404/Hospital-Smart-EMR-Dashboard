@@ -13,7 +13,8 @@
 <div class="container">
 
   <!-- Sidebar -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <h2>🏥 EMR Patients</h2>
     <input type="text" id="search" placeholder="🔍 Search..." oninput="renderPatientList()">
     <div id="patientList" class="patient-list"></div>
@@ -121,3 +122,4 @@
 <script src="script.js"></script>
 </body>
 </html>
+
