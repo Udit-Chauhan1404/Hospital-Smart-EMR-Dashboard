@@ -67,14 +67,16 @@ async function openDashboard(mrn) {
     renderTimeline();
 
     // chat welcome
-    let chatBox = document.getElementById("chatBox");
-    if (chatBox) {
-      chatBox.innerHTML = "";
-      let welcomeMsg = document.createElement("div");
-      welcomeMsg.className = "chat-message ai";
-      welcomeMsg.innerText = `🤖 Hello ${activePatient.name}! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.`;
-      chatBox.appendChild(welcomeMsg);
-    }
+    // chat welcome
+let chatBox = document.getElementById("chatBox");
+if (chatBox) {
+  chatBox.innerHTML = "";
+  let welcomeMsg = document.createElement("div");
+  welcomeMsg.className = "chat-message ai";
+  welcomeMsg.innerText = `🤖 Hello Doctor! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.`;
+  chatBox.appendChild(welcomeMsg);
+}
+
 
     runAILab();
   } catch (e) {
@@ -208,6 +210,22 @@ async function addMedicineToActive(){
   }
 }
 
+async function deleteLastTest() {
+  if (activePatient && activePatient.tests && activePatient.tests.length > 0) {
+    const res = await fetch(`/api/patients/${activePatient.mrn}/tests/last`, { method: 'DELETE' });
+    activePatient = await res.json();
+    renderTests();
+    renderCharts();
+    renderTimeline();
+    renderInsights();
+    runAILab();
+    await fetchPatients();
+  } else {
+    alert("No tests to delete.");
+  }
+}
+
+
 // ---------- AI Insights ----------
 function renderInsights(){
   let area=document.getElementById("insightsContent");
@@ -310,3 +328,4 @@ function toggleSidebar(){ document.getElementById("sidebar").classList.toggle("a
 
 // ---------- Initial Render ----------
 fetchPatients();
+
