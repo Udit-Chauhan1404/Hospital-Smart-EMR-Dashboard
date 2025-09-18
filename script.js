@@ -1,4 +1,4 @@
-// script.js (API-enabled version with Delete Test & AI message)
+// script.js (Final API-enabled version)
 
 // Globals
 let patients = [];
@@ -8,7 +8,7 @@ let vitalsChart = null;
 // ---------- Fetch patients from backend ----------
 async function fetchPatients() {
   try {
-    const res = await fetch('/api/patients');
+    const res = await fetch('https://backend-emr.onrender.com/api/patients');
     patients = await res.json();
     renderPatientList();
   } catch (e) {
@@ -37,13 +37,10 @@ function renderPatientList() {
     });
 }
 
-let chatBox = document.getElementById("chatBox");
-if (chatBox) chatBox.innerHTML = "";
-
 // ---------- Dashboard ----------
 async function openDashboard(mrn) {
   try {
-    const res = await fetch(`/api/patients/${mrn}`);
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${mrn}`);
     if (!res.ok) throw new Error('Patient not found');
     activePatient = await res.json();
 
@@ -63,7 +60,7 @@ async function openDashboard(mrn) {
     renderInsights();
     renderTimeline();
 
-    // chat welcome (always "Hello Doctor!")
+    // chat welcome
     let chatBox = document.getElementById("chatBox");
     if (chatBox) {
       chatBox.innerHTML = "";
@@ -125,14 +122,13 @@ function renderTests() {
 }
 function openAddTest(){ document.getElementById("formAddTest").classList.add("active"); }
 function closeAddTest(){ document.getElementById("formAddTest").classList.remove("active"); }
-
 async function addTestToActive(){
   let type=document.getElementById("testType").value;
   let val=document.getElementById("testValue").value;
   let note=document.getElementById("testNote").value;
   let date=document.getElementById("testDate").value||new Date().toISOString().split("T")[0];
   if(activePatient && type && val){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/tests`, {
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${activePatient.mrn}/tests`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ type, value: Number(val), note, date })
@@ -142,20 +138,12 @@ async function addTestToActive(){
     await fetchPatients();
   }
 }
-
-// ---------- Delete last test ----------
-async function deleteLastTest() {
-  if (activePatient && activePatient.tests && activePatient.tests.length > 0) {
-    const res = await fetch(`/api/patients/${activePatient.mrn}/tests/last`, { method: 'DELETE' });
+async function deleteLastTest(){ 
+  if(activePatient){
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${activePatient.mrn}/tests/last`, { method: 'DELETE' });
     activePatient = await res.json();
-    renderTests();
-    renderCharts();
-    renderTimeline();
-    renderInsights();
-    runAILab();
+    renderTests(); renderCharts(); renderInsights(); renderTimeline(); runAILab();
     await fetchPatients();
-  } else {
-    alert("No tests to delete.");
   }
 }
 
@@ -174,7 +162,7 @@ function closeAddNote(){document.getElementById("formAddNote").classList.remove(
 async function addNoteToActive(){
   let txt=document.getElementById("noteText").value;
   if(activePatient && txt){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/notes`, {
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${activePatient.mrn}/notes`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ text: txt })
@@ -186,7 +174,7 @@ async function addNoteToActive(){
 }
 async function deleteLastNote(){ 
   if(activePatient){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/notes/last`, { method: 'DELETE' });
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${activePatient.mrn}/notes/last`, { method: 'DELETE' });
     activePatient = await res.json();
     renderNotes(); renderTimeline(); renderInsights(); runAILab();
     await fetchPatients();
@@ -211,7 +199,7 @@ async function addMedicineToActive(){
   let freq=document.getElementById("medFreq").value;
   let duration = document.getElementById("medDuration") ? document.getElementById("medDuration").value : undefined;
   if(activePatient && name && dose && freq){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/medicines`, {
+    const res = await fetch(`https://backend-emr.onrender.com/api/patients/${activePatient.mrn}/medicines`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ name, dose, freq, duration })
@@ -275,7 +263,7 @@ async function addPatientFromForm(){
   let gender=document.getElementById("newGender").value;
   let cond=document.getElementById("newCond").value;
   if(name && age && gender){
-    const res = await fetch('/api/patients', {
+    const res = await fetch('https://backend-emr.onrender.com/api/patients', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ name, age: Number(age), gender, cond })
