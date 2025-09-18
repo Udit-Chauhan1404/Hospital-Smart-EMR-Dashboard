@@ -1,265 +1,309 @@
-// ================== Demo Patients ==================
-let patients = [
-  {
-    mrn: 1001,
-    name: "Alice Johnson",
-    age: 34,
-    gender: "Female",
-    cond: "Diabetes & Hypertension",
-    tests: [
-      { type: "glucose", value: 150, note: "Fasting", date: "2025-09-15" },
-      { type: "glucose", value: 140, note: "Post-meal", date: "2025-09-16" },
-      { type: "BP", value: 140, note: "Systolic", date: "2025-09-15" },
-      { type: "BP", value: 90, note: "Diastolic", date: "2025-09-15" },
-      { type: "cholesterol", value: 220, note: "Total", date: "2025-09-15" },
-    ],
-    notes: [{ text: "Patient advised diet control and exercise.", date: "2025-09-15" }],
-  },
-  {
-    mrn: 1002,
-    name: "Bob Smith",
-    age: 45,
-    gender: "Male",
-    cond: "Hypertension & High Cholesterol",
-    tests: [
-      { type: "BP", value: 135, note: "Systolic", date: "2025-09-14" },
-      { type: "BP", value: 85, note: "Diastolic", date: "2025-09-14" },
-      { type: "cholesterol", value: 250, note: "Total", date: "2025-09-14" },
-    ],
-    notes: [{ text: "Encouraged daily walking and low-fat diet.", date: "2025-09-14" }],
-  },
-  {
-    mrn: 1003,
-    name: "Charlie Lee",
-    age: 29,
-    gender: "Male",
-    cond: "Healthy",
-    tests: [
-      { type: "glucose", value: 95, note: "Fasting", date: "2025-09-10" },
-      { type: "BP", value: 120, note: "Systolic", date: "2025-09-10" },
-      { type: "BP", value: 75, note: "Diastolic", date: "2025-09-10" },
-    ],
-    notes: [{ text: "No issues detected.", date: "2025-09-10" }],
-  },
-  {
-    mrn: 1004,
-    name: "Diana Patel",
-    age: 52,
-    gender: "Female",
-    cond: "High Cholesterol & Pre-diabetes",
-    tests: [
-      { type: "cholesterol", value: 240, note: "Total", date: "2025-09-12" },
-      { type: "glucose", value: 125, note: "Fasting", date: "2025-09-12" },
-    ],
-    notes: [{ text: "Prescribed statins and diet modifications.", date: "2025-09-12" }],
-  },
-  {
-    mrn: 1005,
-    name: "Edward Kim",
-    age: 38,
-    gender: "Male",
-    cond: "Pre-diabetes & Hypertension",
-    tests: [
-      { type: "glucose", value: 120, note: "Fasting", date: "2025-09-11" },
-      { type: "BP", value: 130, note: "Systolic", date: "2025-09-11" },
-      { type: "BP", value: 85, note: "Diastolic", date: "2025-09-11" },
-    ],
-    notes: [{ text: "Recommend exercise and diet.", date: "2025-09-11" }],
-  },
-  {
-    mrn: 1006,
-    name: "Fiona Chen",
-    age: 50,
-    gender: "Female",
-    cond: "Diabetes",
-    tests: [
-      { type: "glucose", value: 160, note: "Fasting", date: "2025-09-10" },
-      { type: "cholesterol", value: 230, note: "Total", date: "2025-09-10" },
-    ],
-    notes: [{ text: "Monitor glucose levels daily.", date: "2025-09-10" }],
-  },
-  {
-    mrn: 1007,
-    name: "George Brown",
-    age: 60,
-    gender: "Male",
-    cond: "Hypertension",
-    tests: [
-      { type: "BP", value: 145, note: "Systolic", date: "2025-09-11" },
-      { type: "BP", value: 95, note: "Diastolic", date: "2025-09-11" },
-    ],
-    notes: [{ text: "Check blood pressure twice a day.", date: "2025-09-11" }],
-  },
-  {
-    mrn: 1008,
-    name: "Hannah Davis",
-    age: 42,
-    gender: "Female",
-    cond: "High Cholesterol",
-    tests: [{ type: "cholesterol", value: 260, note: "Total", date: "2025-09-12" }],
-    notes: [{ text: "Start statins immediately.", date: "2025-09-12" }],
-  },
-  {
-    mrn: 1009,
-    name: "Ian Wilson",
-    age: 35,
-    gender: "Male",
-    cond: "Asthma",
-    tests: [],
-    notes: [{ text: "Prescribed inhaler.", date: "2025-09-13" }],
-  },
-  {
-    mrn: 1010,
-    name: "Julia Roberts",
-    age: 47,
-    gender: "Female",
-    cond: "Diabetes & Hypertension",
-    tests: [
-      { type: "glucose", value: 155, note: "Fasting", date: "2025-09-14" },
-      { type: "BP", value: 142, note: "Systolic", date: "2025-09-14" },
-      { type: "BP", value: 88, note: "Diastolic", date: "2025-09-14" },
-    ],
-    notes: [{ text: "Recommended diet and exercise.", date: "2025-09-14" }],
-  },
-];
-// ================== End Demo Patients ==================
+// script.js (API-enabled version)
 
-let activeMRN=null;
-let charts={};
+// Globals
+let patients = [];
+let activePatient = null;
+let vitalsChart = null;
 
-// Render patient list
-function renderPatientList(){
-  const list=document.getElementById("patientList");
-  const search=document.getElementById("search").value.toLowerCase();
-  list.innerHTML="";
-  patients.filter(p=>p.name.toLowerCase().includes(search)).forEach(p=>{
-    const div=document.createElement("div");
-    div.className="patient-card";
-    div.onclick=()=>selectPatient(p.mrn);
-    div.innerHTML=`<div class="patient-avatar">${p.name[0]}</div><div class="patient-meta"><h3>${p.name}</h3><p>${p.age} · ${p.gender}</p><small>${p.cond}</small></div>`;
-    list.appendChild(div);
+// ---------- Fetch patients from backend ----------
+async function fetchPatients() {
+  try {
+    const res = await fetch('/api/patients');
+    patients = await res.json();
+    renderPatientList();
+  } catch (e) {
+    console.error('Failed to fetch patients', e);
+    alert('Could not load patients from server. Is the backend running?');
+  }
+}
+
+// ---------- Sidebar ----------
+function renderPatientList() {
+  let list = document.getElementById("patientList");
+  let search = document.getElementById("search").value.toLowerCase();
+  list.innerHTML = "";
+  patients
+    .filter(p => p.name.toLowerCase().includes(search))
+    .forEach(p => {
+      let card = document.createElement("div");
+      card.className = "patient-card";
+      card.innerHTML = `<div class="patient-meta">
+          <h3>${p.name}</h3>
+          <p>${p.age || ''} | ${p.gender || ''}</p>
+          <small>MRN: ${p.mrn}</small>
+        </div>`;
+      card.onclick = () => openDashboard(p.mrn);
+      list.appendChild(card);
+    });
+}
+
+let chatBox = document.getElementById("chatBox");
+if (chatBox) chatBox.innerHTML = "";
+
+// ---------- Dashboard ----------
+async function openDashboard(mrn) {
+  try {
+    const res = await fetch(`/api/patients/${mrn}`);
+    if (!res.ok) throw new Error('Patient not found');
+    activePatient = await res.json();
+
+    document.getElementById("placeholder").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    document.getElementById("d_name").innerText = activePatient.name;
+    document.getElementById("d_meta").innerText = `${activePatient.age || ''} | ${activePatient.gender || ''}`;
+    document.getElementById("d_mrn").innerText = activePatient.mrn;
+    document.getElementById("d_cond").innerText = activePatient.cond || '';
+    document.getElementById("d_risk").innerText = calculateRisk(activePatient) + "%";
+
+    renderCharts();
+    renderTests();
+    renderNotes();
+    renderMeds();
+    renderInsights();
+    renderTimeline();
+
+    // chat welcome
+    let chatBox = document.getElementById("chatBox");
+    if (chatBox) {
+      chatBox.innerHTML = "";
+      let welcomeMsg = document.createElement("div");
+      welcomeMsg.className = "chat-message ai";
+      welcomeMsg.innerText = `🤖 Hello ${activePatient.name}! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.`;
+      chatBox.appendChild(welcomeMsg);
+    }
+
+    runAILab();
+  } catch (e) {
+    console.error(e);
+    alert('Could not open patient.');
+  }
+}
+
+// ---------- Charts ----------
+function renderCharts() {
+  if (!activePatient) return;
+  let ctx = document.getElementById("vitalsChart").getContext("2d");
+  let vital = document.getElementById("vitalSelect").value;
+
+  let labels = [...new Set((activePatient.tests || []).map(t => t.date))].sort();
+  let datasets = [];
+
+  function addDataset(label, color, getValues) {
+    datasets.push({ label, data: labels.map(getValues), borderColor: color, fill: false, tension:0.3 });
+  }
+
+  if (vital==="all" || vital==="glucose")
+    addDataset("Glucose","#e67e22", d => {
+      let t = (activePatient.tests||[]).find(t=>t.date===d && t.type==="glucose");
+      return t?t.value:null;
+    });
+  if (vital==="all" || vital==="cholesterol")
+    addDataset("Cholesterol","#8e44ad", d => {
+      let t = (activePatient.tests||[]).find(t=>t.date===d && t.type==="cholesterol");
+      return t?t.value:null;
+    });
+  if (vital==="all" || vital==="BP")
+    addDataset("Systolic BP","#27ae60", d => {
+      let t = (activePatient.tests||[]).find(t=>t.date===d && t.type==="BP");
+      return t?t.value:null;
+    });
+
+  if(vitalsChart) vitalsChart.destroy();
+  vitalsChart = new Chart(ctx,{ type:"line", data:{labels,datasets}, options:{responsive:true, plugins:{legend:{position:"bottom"}}}});
+}
+
+// ---------- Tests ----------
+function renderTests() {
+  let area = document.getElementById("testsList");
+  area.innerHTML = "";
+  (activePatient.tests || []).forEach(t=>{
+    let div = document.createElement("div");
+    div.innerText = `${t.date}: ${t.type} = ${t.value} (${t.note || ''})`;
+    area.appendChild(div);
   });
 }
-
-// Select patient
-function selectPatient(mrn){
-  activeMRN=mrn;
-  const patient=patients.find(p=>p.mrn===mrn);
-  document.getElementById("placeholder").style.display="none";
-  document.getElementById("dashboard").style.display="block";
-  document.getElementById("d_name").innerText=patient.name;
-  document.getElementById("d_meta").innerText=`${patient.age} years · ${patient.gender}`;
-  document.getElementById("d_mrn").innerText=patient.mrn;
-  document.getElementById("d_risk").innerText=patient.tests.length>0?"Medium":"Low";
-  renderTests(); renderNotes(); renderInsights(); renderCharts(); renderTimeline();
+function openAddTest(){ document.getElementById("formAddTest").classList.add("active"); }
+function closeAddTest(){ document.getElementById("formAddTest").classList.remove("active"); }
+async function addTestToActive(){
+  let type=document.getElementById("testType").value;
+  let val=document.getElementById("testValue").value;
+  let note=document.getElementById("testNote").value;
+  let date=document.getElementById("testDate").value||new Date().toISOString().split("T")[0];
+  if(activePatient && type && val){
+    const res = await fetch(`/api/patients/${activePatient.mrn}/tests`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type, value: Number(val), note, date })
+    });
+    activePatient = await res.json(); // server returns full patient
+    closeAddTest(); renderTests(); renderCharts(); renderInsights(); renderTimeline(); runAILab();
+    await fetchPatients();
+  }
 }
 
-// Render tests
-function renderTests(){
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  document.getElementById("testsList").innerHTML=patient.tests.map(t=>`<div>${t.date}: ${t.type} = ${t.value} (${t.note})</div>`).join("");
-}
-
-// Render notes
+// ---------- Notes ----------
 function renderNotes(){
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  document.getElementById("notesArea").value=patient.notes.map(n=>`${n.date}: ${n.text}`).join("\n");
-}
-
-// Render insights
-function renderInsights(){
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  let insights=[];
-  patient.tests.forEach(t=>{
-    if(t.type==="glucose" && t.value>140) insights.push("⚠ High Glucose detected.");
-    if(t.type==="cholesterol" && t.value>200) insights.push("⚠ High Cholesterol detected.");
-    if(t.type==="BP" && t.note==="Systolic" && t.value>130) insights.push("⚠ High Blood Pressure (Systolic).");
-    if(t.type==="BP" && t.note==="Diastolic" && t.value>85) insights.push("⚠ High Blood Pressure (Diastolic).");
+  let area=document.getElementById("notesList");
+  area.innerHTML="";
+  (activePatient.notes || []).forEach(n=>{
+    let div=document.createElement("div");
+    div.innerHTML=`${n.date}: ${n.text}`;
+    area.appendChild(div);
   });
-  document.getElementById("insightsArea").innerHTML="<h3>🤖 AI Insights</h3>"+(insights.length?insights.map(i=>`<p>${i}</p>`).join(""):"<p>No issues.</p>");
 }
-
-// Render charts
-function renderCharts(){
-  const ctx=document.getElementById("vitalsChart").getContext("2d");
-  if(charts.vitals) charts.vitals.destroy();
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  if(!patient) return;
-  const labels=[...new Set(patient.tests.map(t=>t.date))].sort();
-  const selectedVital=document.getElementById("vitalSelect").value;
-  const glucoseData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="glucose")?.value || null);
-  const cholesterolData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="cholesterol")?.value || null);
-  const bpSystolicData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="BP" && t.note==="Systolic")?.value || null);
-  const bpDiastolicData=labels.map(d=>patient.tests.find(t=>t.date===d && t.type==="BP" && t.note==="Diastolic")?.value || null);
-  const allDatasets={ glucose:{label:"Glucose",data:glucoseData,borderColor:"#22c55e",tension:0.3,fill:true}, cholesterol:{label:"Cholesterol",data:cholesterolData,borderColor:"#f59e0b",tension:0.3,fill:true}, BP:{label:"Blood Pressure (Systolic)",data:bpSystolicData,borderColor:"#ef4444",tension:0.3,fill:false}, BP2:{label:"Blood Pressure (Diastolic)",data:bpDiastolicData,borderColor:"#f87171",tension:0.3,fill:false}};
-  let datasets=[];
-  if(selectedVital==="all") datasets=[allDatasets.glucose,allDatasets.cholesterol,allDatasets.BP,allDatasets.BP2];
-  else if(selectedVital==="glucose") datasets=[allDatasets.glucose];
-  else if(selectedVital==="cholesterol") datasets=[allDatasets.cholesterol];
-  else if(selectedVital==="BP") datasets=[allDatasets.BP,allDatasets.BP2];
-  charts.vitals=new Chart(ctx,{type:'line',data:{labels, datasets}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
-}
-
-// Render timeline
-function renderTimeline(){
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  const timeline=document.getElementById("timeline");
-  timeline.innerHTML="";
-  const events=[];
-  patient.tests.forEach(t=>events.push({date:t.date,desc:`Test: ${t.type} = ${t.value} (${t.note})`}));
-  patient.notes.forEach(n=>events.push({date:n.date,desc:`Note: ${n.text}`}));
-  events.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const ul=document.createElement("ul");
-  events.forEach(ev=>{
-    const li=document.createElement("li");
-    li.innerHTML=`<span class="dot"></span><span class="event">${ev.date}: ${ev.desc}</span>`;
-    ul.appendChild(li);
-  });
-  timeline.appendChild(ul);
-}
-
-// ================ Add Patient =================
-function openAddPatient(){document.getElementById("addPatientCard").classList.add("active");}
-function closeAddPatient(){document.getElementById("addPatientCard").classList.remove("active");}
-function addPatientFromForm(){
-  const n=document.getElementById("newName").value;
-  const a=document.getElementById("newAge").value;
-  const g=document.getElementById("newGender").value;
-  const c=document.getElementById("newCond").value;
-  if(!n||!a||!g||!c){alert("All fields required."); return;}
-  const mrn=Math.floor(Math.random()*9000)+1000;
-  patients.push({mrn,name:n,age:a,gender:g,cond:c,tests:[],notes:[]});
-  renderPatientList(); closeAddPatient();
-}
-
-// ================ Add Test =================
-function openAddTest(){document.getElementById("formAddTest").classList.add("active");}
-function closeAddTest(){document.getElementById("formAddTest").classList.remove("active");}
-function addTestToActive(){
-  const type=document.getElementById("testType").value;
-  const value=document.getElementById("testValue").value;
-  const note=document.getElementById("testNote").value;
-  const date=document.getElementById("testDate").value;
-  if(!type||!value||!date){alert("Test type, value and date required."); return;}
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  patient.tests.push({type,value,note,date});
-  renderTests(); renderCharts(); renderInsights(); renderTimeline(); closeAddTest();
-}
-
-// ================ Add Note =================
 function openAddNote(){document.getElementById("formAddNote").classList.add("active");}
 function closeAddNote(){document.getElementById("formAddNote").classList.remove("active");}
-function addNoteToActive(){
-  const text=document.getElementById("noteText").value;
-  if(!text){alert("Note cannot be empty."); return;}
-  const patient=patients.find(p=>p.mrn===activeMRN);
-  const today=new Date().toISOString().split("T")[0];
-  patient.notes.push({text,date:today});
-  renderNotes(); renderInsights(); renderTimeline(); closeAddNote();
+async function addNoteToActive(){
+  let txt=document.getElementById("noteText").value;
+  if(activePatient && txt){
+    const res = await fetch(`/api/patients/${activePatient.mrn}/notes`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ text: txt })
+    });
+    activePatient = await res.json();
+    closeAddNote(); renderNotes(); renderTimeline(); renderInsights(); runAILab();
+    await fetchPatients();
+  }
+}
+async function deleteLastNote(){ 
+  if(activePatient){
+    const res = await fetch(`/api/patients/${activePatient.mrn}/notes/last`, { method: 'DELETE' });
+    activePatient = await res.json();
+    renderNotes(); renderTimeline(); renderInsights(); runAILab();
+    await fetchPatients();
+  }
 }
 
-// Toggle Sidebar
-function toggleSidebar(){document.getElementById("sidebar").classList.toggle("active");}
+// ---------- Medicines ----------
+function renderMeds(){
+  let area=document.getElementById("medList");
+  area.innerHTML="";
+  (activePatient.medicines || []).forEach(m=>{
+    let li=document.createElement("li");
+    li.innerText=`${m.name} (${m.dose}) - ${m.freq}`;
+    area.appendChild(li);
+  });
+}
+function openAddMedicine(){document.getElementById("formAddMedicine").classList.add("active");}
+function closeAddMedicine(){document.getElementById("formAddMedicine").classList.remove("active");}
+async function addMedicineToActive(){
+  let name=document.getElementById("medName").value;
+  let dose=document.getElementById("medDose").value;
+  let freq=document.getElementById("medFreq").value;
+  let duration = document.getElementById("medDuration") ? document.getElementById("medDuration").value : undefined;
+  if(activePatient && name && dose && freq){
+    const res = await fetch(`/api/patients/${activePatient.mrn}/medicines`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, dose, freq, duration })
+    });
+    activePatient = await res.json();
+    closeAddMedicine(); renderMeds(); renderTimeline(); runAILab();
+    await fetchPatients();
+  }
+}
 
-// Initial render
-renderPatientList();
+// ---------- AI Insights ----------
+function renderInsights(){
+  let area=document.getElementById("insightsContent");
+  let alerts = [];
+  let latestGlucose = (activePatient.tests||[]).filter(t=>t.type==="glucose").slice(-1)[0];
+  let latestBP = (activePatient.tests||[]).filter(t=>t.type==="BP").slice(-1)[0];
+  let latestChol = (activePatient.tests||[]).filter(t=>t.type==="cholesterol").slice(-1)[0];
+  if(latestGlucose && latestGlucose.value>140) alerts.push('<div class="alert alert-high">⚠ High Glucose: '+latestGlucose.value+'</div>');
+  if(latestBP && latestBP.value>140) alerts.push('<div class="alert alert-high">⚠ High BP: '+latestBP.value+'</div>');
+  if(latestChol && latestChol.value>200) alerts.push('<div class="alert alert-medium">⚠ High Cholesterol: '+latestChol.value+'</div>');
+  if(alerts.length===0) alerts.push('<div class="alert alert-normal">✅ All vitals normal.</div>');
+  if(area) area.innerHTML = alerts.join('');
+}
+
+// ---------- AI Lab ----------
+function runAILab(){
+  if(!activePatient) return;
+  let lab = document.getElementById("aiLabResult");
+  let risk = calculateRisk(activePatient);
+  let level = risk>70?"High":risk>40?"Moderate":"Low";
+  let nextTests = ["glucose","BP","cholesterol"].filter(t=>!((activePatient.tests||[]).some(x=>x.type===t))).join(", ");
+  if(lab) lab.innerHTML = `<p><b>Predicted Risk Level:</b> ${level}</p>
+                   <p><b>Suggested Next Tests:</b> ${nextTests||"All tests done"}</p>
+                   <p><b>Notes Review Needed:</b> ${activePatient.notes && activePatient.notes.length>0 ? "Yes":"No"}</p>`;
+}
+
+// ---------- AI Chat ----------
+function sendChat(){
+  let input=document.getElementById("chatInput");
+  let box=document.getElementById("chatBox");
+  let msg=input.value.trim(); if(!msg) return;
+  let userMsg=document.createElement("div"); userMsg.className="chat-message user"; userMsg.innerText="👨‍⚕️ "+msg;
+  box.appendChild(userMsg);
+  let aiMsg=document.createElement("div"); aiMsg.className="chat-message ai"; aiMsg.innerText="🤖 "+generateAIResponse(msg);
+  box.appendChild(aiMsg);
+  input.value=""; box.scrollTop=box.scrollHeight;
+}
+function generateAIResponse(msg){
+  msg=msg.toLowerCase();
+  if(!activePatient) return "Select a patient first.";
+  if(msg.includes("risk")) return "Patient risk is approx "+calculateRisk(activePatient)+"% based on vitals.";
+  if(msg.includes("medicine")) return "Review current medicines: "+(activePatient.medicines || []).map(m=>m.name).join(", ");
+  if(msg.includes("summary")) return "Recent notes: "+((activePatient.notes||[]).slice(-2).map(n=>n.text).join(". ")||"No notes.");
+  return "Ask me about risk, medicines, or patient summary.";
+}
+
+// ---------- Patient Management ----------
+async function addPatientFromForm(){
+  let name=document.getElementById("newName").value;
+  let age=document.getElementById("newAge").value;
+  let gender=document.getElementById("newGender").value;
+  let cond=document.getElementById("newCond").value;
+  if(name && age && gender){
+    const res = await fetch('/api/patients', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, age: Number(age), gender, cond })
+    });
+    const newPatient = await res.json();
+    closeAddPatient();
+    await fetchPatients();
+    openDashboard(newPatient.mrn);
+  } else {
+    alert('Please fill name, age and gender.');
+  }
+}
+function openAddPatient(){document.getElementById("addPatientCard").classList.add("active");}
+function closeAddPatient(){document.getElementById("addPatientCard").classList.remove("active");}
+
+// ---------- Timeline ----------
+function renderTimeline(){
+  let timeline=document.getElementById("timeline");
+  timeline.innerHTML="";
+  let entries = [];
+  (activePatient.tests||[]).forEach(t=>entries.push({date:t.date,txt:`Test: ${t.type}=${t.value}`}));
+  (activePatient.notes||[]).forEach(n=>entries.push({date:n.date,txt:`Note: ${n.text}`}));
+  (activePatient.medicines||[]).forEach(m=>entries.push({date:new Date().toISOString().split("T")[0],txt:`Medicine: ${m.name}`}));
+  entries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  entries.forEach(e=>{
+    let li=document.createElement("li");
+    li.innerText=`${e.date}: ${e.txt}`;
+    timeline.appendChild(li);
+  });
+}
+
+// ---------- Risk Calculation ----------
+function calculateRisk(p){
+  let r=0;
+  let lastGlucose=(p.tests||[]).filter(t=>t.type==="glucose").slice(-1)[0];
+  if(lastGlucose) r+=lastGlucose.value/2;
+  let lastBP=(p.tests||[]).filter(t=>t.type==="BP").slice(-1)[0];
+  if(lastBP) r+=lastBP.value/3;
+  let lastChol=(p.tests||[]).filter(t=>t.type==="cholesterol").slice(-1)[0];
+  if(lastChol) r+=lastChol.value/4;
+  return Math.min(100,Math.round(r));
+}
+
+// ---------- Sidebar Toggle ----------
+function toggleSidebar(){ document.getElementById("sidebar").classList.toggle("active"); }
+
+// ---------- Initial Render ----------
+fetchPatients();
