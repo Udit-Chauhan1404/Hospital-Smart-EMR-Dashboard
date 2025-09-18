@@ -1,4 +1,7 @@
-// script.js (API-enabled version)
+// script.js (Render-ready version)
+
+// Base URL for your Render backend
+const BASE_URL = "https://backend-emr.onrender.com/api";
 
 // Globals
 let patients = [];
@@ -8,12 +11,12 @@ let vitalsChart = null;
 // ---------- Fetch patients from backend ----------
 async function fetchPatients() {
   try {
-    const res = await fetch('/api/patients');
+    const res = await fetch(`${BASE_URL}/patients`);
     patients = await res.json();
     renderPatientList();
   } catch (e) {
     console.error('Failed to fetch patients', e);
-    alert('Could not load patients from server. Is the backend running?');
+    alert('Could not load patients from server.');
   }
 }
 
@@ -43,7 +46,7 @@ if (chatBox) chatBox.innerHTML = "";
 // ---------- Dashboard ----------
 async function openDashboard(mrn) {
   try {
-    const res = await fetch(`/api/patients/${mrn}`);
+    const res = await fetch(`${BASE_URL}/patients/${mrn}`);
     if (!res.ok) throw new Error('Patient not found');
     activePatient = await res.json();
 
@@ -131,12 +134,12 @@ async function addTestToActive(){
   let note=document.getElementById("testNote").value;
   let date=document.getElementById("testDate").value||new Date().toISOString().split("T")[0];
   if(activePatient && type && val){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/tests`, {
+    const res = await fetch(`${BASE_URL}/patients/${activePatient.mrn}/tests`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ type, value: Number(val), note, date })
     });
-    activePatient = await res.json(); // server returns full patient
+    activePatient = await res.json();
     closeAddTest(); renderTests(); renderCharts(); renderInsights(); renderTimeline(); runAILab();
     await fetchPatients();
   }
@@ -157,7 +160,7 @@ function closeAddNote(){document.getElementById("formAddNote").classList.remove(
 async function addNoteToActive(){
   let txt=document.getElementById("noteText").value;
   if(activePatient && txt){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/notes`, {
+    const res = await fetch(`${BASE_URL}/patients/${activePatient.mrn}/notes`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ text: txt })
@@ -169,7 +172,7 @@ async function addNoteToActive(){
 }
 async function deleteLastNote(){ 
   if(activePatient){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/notes/last`, { method: 'DELETE' });
+    const res = await fetch(`${BASE_URL}/patients/${activePatient.mrn}/notes/last`, { method: 'DELETE' });
     activePatient = await res.json();
     renderNotes(); renderTimeline(); renderInsights(); runAILab();
     await fetchPatients();
@@ -194,7 +197,7 @@ async function addMedicineToActive(){
   let freq=document.getElementById("medFreq").value;
   let duration = document.getElementById("medDuration") ? document.getElementById("medDuration").value : undefined;
   if(activePatient && name && dose && freq){
-    const res = await fetch(`/api/patients/${activePatient.mrn}/medicines`, {
+    const res = await fetch(`${BASE_URL}/patients/${activePatient.mrn}/medicines`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ name, dose, freq, duration })
@@ -258,7 +261,7 @@ async function addPatientFromForm(){
   let gender=document.getElementById("newGender").value;
   let cond=document.getElementById("newCond").value;
   if(name && age && gender){
-    const res = await fetch('/api/patients', {
+    const res = await fetch(`${BASE_URL}/patients`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ name, age: Number(age), gender, cond })
