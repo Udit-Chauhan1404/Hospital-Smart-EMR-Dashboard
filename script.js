@@ -1,7 +1,7 @@
-// script.js (Render-ready version)
+// script.js (Render backend-enabled version)
 
-// Base URL for your Render backend
-const BASE_URL = "https://backend-emr.onrender.com/api";
+// Backend base URL
+const BASE_URL = "https://backend-emr.onrender.com";
 
 // Globals
 let patients = [];
@@ -16,7 +16,7 @@ async function fetchPatients() {
     renderPatientList();
   } catch (e) {
     console.error('Failed to fetch patients', e);
-    alert('Could not load patients from server.');
+    alert('Could not load patients from server. Is the backend live?');
   }
 }
 
@@ -206,52 +206,6 @@ async function addMedicineToActive(){
     closeAddMedicine(); renderMeds(); renderTimeline(); runAILab();
     await fetchPatients();
   }
-}
-
-// ---------- AI Insights ----------
-function renderInsights(){
-  let area=document.getElementById("insightsContent");
-  let alerts = [];
-  let latestGlucose = (activePatient.tests||[]).filter(t=>t.type==="glucose").slice(-1)[0];
-  let latestBP = (activePatient.tests||[]).filter(t=>t.type==="BP").slice(-1)[0];
-  let latestChol = (activePatient.tests||[]).filter(t=>t.type==="cholesterol").slice(-1)[0];
-  if(latestGlucose && latestGlucose.value>140) alerts.push('<div class="alert alert-high">⚠ High Glucose: '+latestGlucose.value+'</div>');
-  if(latestBP && latestBP.value>140) alerts.push('<div class="alert alert-high">⚠ High BP: '+latestBP.value+'</div>');
-  if(latestChol && latestChol.value>200) alerts.push('<div class="alert alert-medium">⚠ High Cholesterol: '+latestChol.value+'</div>');
-  if(alerts.length===0) alerts.push('<div class="alert alert-normal">✅ All vitals normal.</div>');
-  if(area) area.innerHTML = alerts.join('');
-}
-
-// ---------- AI Lab ----------
-function runAILab(){
-  if(!activePatient) return;
-  let lab = document.getElementById("aiLabResult");
-  let risk = calculateRisk(activePatient);
-  let level = risk>70?"High":risk>40?"Moderate":"Low";
-  let nextTests = ["glucose","BP","cholesterol"].filter(t=>!((activePatient.tests||[]).some(x=>x.type===t))).join(", ");
-  if(lab) lab.innerHTML = `<p><b>Predicted Risk Level:</b> ${level}</p>
-                   <p><b>Suggested Next Tests:</b> ${nextTests||"All tests done"}</p>
-                   <p><b>Notes Review Needed:</b> ${activePatient.notes && activePatient.notes.length>0 ? "Yes":"No"}</p>`;
-}
-
-// ---------- AI Chat ----------
-function sendChat(){
-  let input=document.getElementById("chatInput");
-  let box=document.getElementById("chatBox");
-  let msg=input.value.trim(); if(!msg) return;
-  let userMsg=document.createElement("div"); userMsg.className="chat-message user"; userMsg.innerText="👨‍⚕️ "+msg;
-  box.appendChild(userMsg);
-  let aiMsg=document.createElement("div"); aiMsg.className="chat-message ai"; aiMsg.innerText="🤖 "+generateAIResponse(msg);
-  box.appendChild(aiMsg);
-  input.value=""; box.scrollTop=box.scrollHeight;
-}
-function generateAIResponse(msg){
-  msg=msg.toLowerCase();
-  if(!activePatient) return "Select a patient first.";
-  if(msg.includes("risk")) return "Patient risk is approx "+calculateRisk(activePatient)+"% based on vitals.";
-  if(msg.includes("medicine")) return "Review current medicines: "+(activePatient.medicines || []).map(m=>m.name).join(", ");
-  if(msg.includes("summary")) return "Recent notes: "+((activePatient.notes||[]).slice(-2).map(n=>n.text).join(". ")||"No notes.");
-  return "Ask me about risk, medicines, or patient summary.";
 }
 
 // ---------- Patient Management ----------
