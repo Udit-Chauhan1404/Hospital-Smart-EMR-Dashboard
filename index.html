@@ -9,120 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Sidebar -->
   <div id="sidebar">
-    <h2>EMR Patients</h2>
-    <input type="text" id="search" placeholder="Search patient..." onkeyup="renderPatientList()">
+    <h2>Patients</h2>
+    <input type="text" id="searchPatient" placeholder="Search patient...">
+    <button onclick="openForm('patient')">+ Add Patient</button>
     <div id="patientList"></div>
-    <button onclick="openAddPatient()">+ Add Patient</button>
   </div>
 
-  <!-- Main -->
   <div id="main">
-    <!-- Placeholder -->
-    <div id="placeholder">
-      <h2>Select a patient from the sidebar...</h2>
-    </div>
-
-    <!-- Dashboard -->
-    <div id="dashboard" style="display:none;">
-      <h2 id="d_name"></h2>
-      <p id="d_meta"></p>
-      <p><b>MRN:</b> <span id="d_mrn"></span></p>
-      <p><b>Condition:</b> <span id="d_cond"></span></p>
-      <p><b>Risk:</b> <span id="d_risk"></span></p>
-
-      <div class="charts">
-        <h3>Vitals</h3>
-        <select id="vitalSelect" onchange="renderCharts()">
-          <option value="all">All</option>
-          <option value="glucose">Glucose</option>
-          <option value="cholesterol">Cholesterol</option>
-          <option value="BP">Blood Pressure</option>
-        </select>
-        <canvas id="vitalsChart"></canvas>
-      </div>
-
-      <div class="tests">
-        <h3>Tests</h3>
-        <div id="testsList"></div>
-        <button onclick="openAddTest()">+ Add Test</button>
-        <button onclick="deleteLastTest()">🗑 Delete Last Test</button>
-      </div>
-
-      <div class="notes">
-        <h3>Notes</h3>
-        <div id="notesList"></div>
-        <button onclick="openAddNote()">+ Add Note</button>
-        <button onclick="deleteLastNote()">🗑 Delete Last Note</button>
-      </div>
-
-      <div class="medicines">
-        <h3>Medicines</h3>
-        <ul id="medList"></ul>
-        <button onclick="openAddMedicine()">+ Add Medicine</button>
-      </div>
-
-      <div class="insights">
-        <h3>AI Insights</h3>
-        <div id="insightsContent"></div>
-        <div id="aiLabResult"></div>
-      </div>
-
-      <div class="timeline">
-        <h3>Timeline</h3>
-        <ul id="timeline"></ul>
-      </div>
-
-      <div class="chat">
-        <h3>AI Assistant</h3>
-        <div class="chat-box" id="chatBox"></div>
-        <input type="text" id="chatInput" placeholder="Ask AI...">
-        <button onclick="sendChat()">Send</button>
-      </div>
-    </div>
+    <h1>Hospital EMR Dashboard</h1>
+    <div id="patientDetails">Select a patient from the sidebar...</div>
   </div>
 
-  <!-- Add Patient Form -->
-  <div class="form-card" id="addPatientCard">
-    <h3>Add Patient</h3>
-    <input id="newName" placeholder="Name">
-    <input id="newAge" placeholder="Age" type="number">
-    <input id="newGender" placeholder="Gender">
-    <input id="newCond" placeholder="Condition">
-    <button onclick="addPatientFromForm()">Save</button>
-    <button onclick="closeAddPatient()">Cancel</button>
-  </div>
-
-  <!-- Add Test Form -->
-  <div class="form-card" id="formAddTest">
-    <h3>Add Test</h3>
-    <input id="testType" placeholder="Type (glucose, BP, cholesterol)">
-    <input id="testValue" placeholder="Value" type="number">
-    <input id="testNote" placeholder="Note">
-    <input id="testDate" type="date">
-    <button onclick="addTestToActive()">Save</button>
-    <button onclick="closeAddTest()">Cancel</button>
-  </div>
-
-  <!-- Add Note Form -->
-  <div class="form-card" id="formAddNote">
-    <h3>Add Note</h3>
-    <textarea id="noteText" placeholder="Enter note..."></textarea>
-    <button onclick="addNoteToActive()">Save</button>
-    <button onclick="closeAddNote()">Cancel</button>
-  </div>
-
-  <!-- Add Medicine Form -->
-  <div class="form-card" id="formAddMedicine">
-    <h3>Add Medicine</h3>
-    <input id="medName" placeholder="Name">
-    <input id="medDose" placeholder="Dose">
-    <input id="medFreq" placeholder="Frequency">
-    <input id="medDuration" placeholder="Duration">
-    <button onclick="addMedicineToActive()">Save</button>
-    <button onclick="closeAddMedicine()">Cancel</button>
-  </div>
+  <!-- Forms -->
+  <div id="form" class="form-card"></div>
 
   <script src="script.js"></script>
 </body>
