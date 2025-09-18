@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hospital EMR Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital EMR Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Mobile Menu Button -->
-<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+<div class="menu-btn" onclick="toggleSidebar()">☰</div>
 
 <div class="container">
 
@@ -35,6 +34,7 @@
         <h2 id="d_name"></h2>
         <p id="d_meta"></p>
         <p><b>MRN:</b> <span id="d_mrn"></span> | <b>Risk:</b> <span id="d_risk"></span></p>
+        <p><b>Conditions:</b> <span id="d_cond"></span></p>
       </div>
 
       <!-- Charts -->
@@ -45,35 +45,65 @@
           <option value="all">All</option>
           <option value="glucose">Glucose</option>
           <option value="cholesterol">Cholesterol</option>
-          <option value="BP">Blood Pressure (Systolic & Diastolic)</option>
+          <option value="BP">Blood Pressure</option>
         </select>
         <canvas id="vitalsChart"></canvas>
       </div>
 
-      <!-- Tests & Notes -->
+      <!-- Tests / Notes / Medicines -->
       <div class="tests-notes">
         <div class="tests card">
           <h3>🧪 Tests</h3>
           <div id="testsList"></div>
           <button class="btn small" onclick="openAddTest()">+ Add Test</button>
         </div>
+
         <div class="notes card">
           <h3>📝 Notes</h3>
-          <textarea id="notesArea" readonly></textarea>
-          <button class="btn small" onclick="openAddNote()">+ Add Note</button>
+          <div id="notesList" class="notes-list"></div>
+          <div class="note-actions">
+            <button class="btn small" onclick="openAddNote()">+ Add Note</button>
+            <button class="btn small danger" onclick="deleteLastNote()">🗑 Delete Last</button>
+          </div>
+        </div>
+
+        <div class="meds card">
+          <h3>💊 Medicines</h3>
+          <ul id="medList"></ul>
+          <button class="btn small" onclick="openAddMedicine()">+ Add Medicine</button>
         </div>
       </div>
 
-      <!-- Insights -->
+      <!-- AI Insights -->
       <div id="insightsArea" class="insights card">
         <h3>🤖 AI Insights</h3>
+        <div id="insightsContent"></div>
+      </div>
+
+      <!-- AI Chat -->
+<div class="ai-chat card">
+  <h3>💬 AI Assistant</h3>
+  <div id="chatBox" class="chat-box"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Ask AI..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn small" onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+      <!-- AI Lab -->
+      <div class="ai-lab card">
+        <h3>🧠 AI Lab</h3>
+        <div id="aiLabContent">
+          <div id="aiLabResult" class="ai-lab-result"></div>
+        </div>
       </div>
 
       <!-- Timeline -->
       <div class="timeline-container card">
         <h3>📅 Patient Timeline</h3>
-        <div id="timeline" class="timeline"></div>
+        <ul id="timeline" class="timeline"></ul>
       </div>
+
     </div>
   </div>
 </div>
@@ -108,7 +138,7 @@
     <input type="number" id="testValue" placeholder="Value">
     <input type="text" id="testNote" placeholder="Note">
     <input type="date" id="testDate">
-    <button class="btn" onclick="addTestToActive()">Add Test</button>
+    <button class="btn" onclick="addTestToActive()">Add Test</button>  
   </div>
 </div>
 
@@ -118,6 +148,17 @@
     <h3>Add Note</h3>
     <textarea id="noteText" placeholder="Enter note"></textarea>
     <button class="btn" onclick="addNoteToActive()">Add Note</button>
+  </div>
+</div>
+
+<div id="formAddMedicine" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddMedicine()">&times;</span>
+    <h3>Add Medicine</h3>
+    <input type="text" id="medName" placeholder="Medicine Name">
+    <input type="text" id="medDose" placeholder="Dosage (e.g., 500mg)">
+    <input type="text" id="medFreq" placeholder="Frequency (e.g., Twice Daily)">
+    <button class="btn" onclick="addMedicineToActive()">Add Medicine</button>
   </div>
 </div>
 
