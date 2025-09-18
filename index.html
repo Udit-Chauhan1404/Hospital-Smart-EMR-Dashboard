@@ -9,20 +9,69 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Sidebar -->
   <div id="sidebar">
     <h2>Patients</h2>
-    <input type="text" id="searchPatient" placeholder="Search patient...">
-    <button onclick="openForm('patient')">+ Add Patient</button>
+    <input type="text" id="searchBar" placeholder="Search patients...">
     <div id="patientList"></div>
+    <button onclick="openPatientForm()">➕ Add Patient</button>
   </div>
 
+  <!-- Main Area -->
   <div id="main">
-    <h1>Hospital EMR Dashboard</h1>
-    <div id="patientDetails">Select a patient from the sidebar...</div>
+    <h1 id="patientName">Select a patient from the sidebar</h1>
+    <p id="patientDetails"></p>
+
+    <div class="charts">
+      <canvas id="vitalsChart"></canvas>
+    </div>
+
+    <div class="tests">
+      <h3>Tests</h3>
+      <ul id="testList"></ul>
+      <button onclick="openTestForm()">➕ Add Test</button>
+    </div>
+
+    <div class="notes">
+      <h3>Notes</h3>
+      <ul id="notesList"></ul>
+      <button onclick="openNoteForm()">➕ Add Note</button>
+    </div>
+
+    <div class="chat">
+      <h3>AI Assistant</h3>
+      <div class="chat-box" id="chatBox"></div>
+      <input type="text" id="chatInput" placeholder="Ask AI...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
   </div>
 
-  <!-- Forms -->
-  <div id="form" class="form-card"></div>
+  <!-- Patient Form -->
+  <div class="form-card" id="patientForm">
+    <h3>Add Patient</h3>
+    <input type="text" id="p_name" placeholder="Name"><br>
+    <input type="number" id="p_age" placeholder="Age"><br>
+    <input type="text" id="p_gender" placeholder="Gender"><br>
+    <button onclick="addPatient()">Save</button>
+    <button onclick="closePatientForm()">Cancel</button>
+  </div>
+
+  <!-- Test Form -->
+  <div class="form-card" id="testForm">
+    <h3>Add Test</h3>
+    <input type="text" id="t_name" placeholder="Test Name"><br>
+    <input type="text" id="t_result" placeholder="Result"><br>
+    <button onclick="addTest()">Save</button>
+    <button onclick="closeTestForm()">Cancel</button>
+  </div>
+
+  <!-- Note Form -->
+  <div class="form-card" id="noteForm">
+    <h3>Add Note</h3>
+    <textarea id="n_text" placeholder="Write a note..."></textarea><br>
+    <button onclick="addNote()">Save</button>
+    <button onclick="closeNoteForm()">Cancel</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
