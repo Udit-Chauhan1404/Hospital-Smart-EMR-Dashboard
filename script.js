@@ -1,210 +1,207 @@
-const API_URL = "https://backend-emr.onrender.com"; 
+let patients = JSON.parse(localStorage.getItem("patients")) || [];
+let selectedPatient = null;
 
-let currentPatient = null;
+function saveData() {
+  localStorage.setItem("patients", JSON.stringify(patients));
+}
 
-// Fetch and display patients
-async function loadPatients() {
-  const res = await fetch(`${API_URL}/patients`);
-  const patients = await res.json();
-
-  const patientList = document.getElementById("patientList");
-  patientList.innerHTML = "";
-
-  patients.forEach(p => {
+function renderPatients() {
+  const list = document.getElementById("patientList");
+  list.innerHTML = "";
+  patients.forEach((p, idx) => {
     const div = document.createElement("div");
     div.className = "patient-card";
-    div.innerText = `${p.name} (${p.age}, ${p.gender})`;
-    div.onclick = () => openPatient(p.id);
-    patientList.appendChild(div);
-  });
-}
-
-// Open a patient profile
-async function openPatient(id) {
-  try {
-    const res = await fetch(`${API_URL}/patients/${id}`);
-    if (!res.ok) throw new Error("Patient not found");
-    currentPatient = await res.json();
-
-    document.getElementById("placeholder").style.display = "none";
-    document.getElementById("patientDetails").style.display = "block";
-
-    document.getElementById("patientName").innerText = currentPatient.name;
-    document.getElementById("patientAgeGender").innerText =
-      `${currentPatient.age} years, ${currentPatient.gender}`;
-
-    renderTests();
-    renderNotes();
-    renderMedicines();
-    renderTimeline();
-
-    // Reset chat
-    const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML = "";
-    addAIMessage("Hello Doctor! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.");
-  } catch (err) {
-    alert("Could not open patient.");
-  }
-}
-
-/* ------------ RENDERING FUNCTIONS ------------ */
-function renderTests() {
-  const list = document.getElementById("testsList");
-  list.innerHTML = "";
-  (currentPatient.tests || []).forEach((t, i) => {
-    const div = document.createElement("div");
-    div.innerHTML = `${t} <button onclick="deleteTest(${i})">❌</button>`;
+    div.innerText = p.name;
+    div.onclick = () => selectPatient(idx);
     list.appendChild(div);
   });
 }
 
-function renderNotes() {
-  const list = document.getElementById("notesList");
-  list.innerHTML = "";
-  (currentPatient.notes || []).forEach(n => {
-    const div = document.createElement("div");
-    div.innerText = n;
-    list.appendChild(div);
+function selectPatient(idx) {
+  selectedPatient = idx;
+  const p = patients[idx];
+  document.getElementById("patientDetails").innerHTML = `
+    <h2>${p.name}</h2>
+
+    <div class="charts">
+      <canvas id="chart${idx}" width="400" height="200"></canvas>
+    </div>
+
+    <div class="tests">
+      <h3>Tests</h3>
+      <ul>
+        ${p.tests.map((t, i) => `<li>${t} <button onclick="deleteTest(${idx},${i})">❌</button></li>`).join("")}
+      </ul>
+      <button onclick="openForm('test')">+ Add Test</button>
+    </div>
+
+    <div class="notes">
+      <h3>Notes</h3>
+      <ul>
+        ${p.notes.map((n, i) => `<li>${n} <button onclick="deleteNote(${idx},${i})">❌</button></li>`).join("")}
+      </ul>
+      <button onclick="openForm('note')">+ Add Note</button>
+    </div>
+
+    <div class="medicines">
+      <h3>Medicines</h3>
+      <ul>
+        ${p.medicines.map((m, i) => `<li>${m} <button onclick="deleteMedicine(${idx},${i})">❌</button></li>`).join("")}
+      </ul>
+      <button onclick="openForm('medicine')">+ Add Medicine</button>
+    </div>
+
+    <div class="chat">
+      <h3>AI Assistant</h3>
+      <div class="chat-box" id="chatBox"></div>
+      <input type="text" id="chatInput" placeholder="Ask AI..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  `;
+  renderChart(idx);
+  addAIMessage("Hello Doctor! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.");
+}
+
+function renderChart(idx) {
+  const ctx = document.getElementById(`chart${idx}`).getContext("2d");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+      datasets: [{
+        label: "Risk Factor",
+        data: [12, 19, 3, 5, 2],
+        borderColor: "blue",
+        fill: false
+      }]
+    }
   });
 }
 
-function renderMedicines() {
-  const list = document.getElementById("medList");
-  list.innerHTML = "";
-  (currentPatient.medicines || []).forEach(m => {
-    const li = document.createElement("li");
-    li.innerText = m;
-    list.appendChild(li);
-  });
-}
+function openForm(type) {
+  const form = document.getElementById("form");
+  form.classList.add("active");
 
-function renderTimeline() {
-  const list = document.getElementById("timeline");
-  list.innerHTML = "";
-  (currentPatient.timeline || []).forEach(ev => {
-    const li = document.createElement("li");
-    li.innerText = ev;
-    list.appendChild(li);
-  });
-}
-
-/* ------------ ADD / DELETE ------------ */
-async function addPatient() {
-  const name = document.getElementById("pName").value;
-  const age = document.getElementById("pAge").value;
-  const gender = document.getElementById("pGender").value;
-
-  const res = await fetch(`${API_URL}/patients`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, age, gender, tests: [], notes: [], medicines: [], timeline: [] })
-  });
-
-  if (res.ok) {
-    closeForm();
-    loadPatients();
+  if (type === "patient") {
+    form.innerHTML = `
+      <h3>Add Patient</h3>
+      <input id="patientName" placeholder="Name">
+      <button onclick="addPatient()">Save</button>
+      <button onclick="closeForm()">Cancel</button>
+    `;
+  } else if (type === "test") {
+    form.innerHTML = `
+      <h3>Add Test</h3>
+      <input id="testName" placeholder="Test name">
+      <button onclick="addTest()">Save</button>
+      <button onclick="closeForm()">Cancel</button>
+    `;
+  } else if (type === "note") {
+    form.innerHTML = `
+      <h3>Add Note</h3>
+      <input id="noteText" placeholder="Note">
+      <button onclick="addNote()">Save</button>
+      <button onclick="closeForm()">Cancel</button>
+    `;
+  } else if (type === "medicine") {
+    form.innerHTML = `
+      <h3>Add Medicine</h3>
+      <input id="medicineText" placeholder="Medicine">
+      <button onclick="addMedicine()">Save</button>
+      <button onclick="closeForm()">Cancel</button>
+    `;
   }
-}
-
-async function addTest() {
-  const test = prompt("Enter test result:");
-  if (!test) return;
-
-  currentPatient.tests.push(test);
-  currentPatient.timeline.push(`Test added: ${test}`);
-
-  await updatePatient();
-  renderTests();
-  renderTimeline();
-}
-
-async function deleteTest(index) {
-  currentPatient.tests.splice(index, 1);
-  currentPatient.timeline.push("A test was deleted");
-
-  await updatePatient();
-  renderTests();
-  renderTimeline();
-}
-
-async function addNote() {
-  const note = prompt("Enter note:");
-  if (!note) return;
-
-  currentPatient.notes.push(note);
-  currentPatient.timeline.push(`Note added: ${note}`);
-
-  await updatePatient();
-  renderNotes();
-  renderTimeline();
-}
-
-async function addMedicine() {
-  const med = prompt("Enter medicine:");
-  if (!med) return;
-
-  currentPatient.medicines.push(med);
-  currentPatient.timeline.push(`Medicine prescribed: ${med}`);
-
-  await updatePatient();
-  renderMedicines();
-  renderTimeline();
-}
-
-/* ------------ BACKEND UPDATE ------------ */
-async function updatePatient() {
-  await fetch(`${API_URL}/patients/${currentPatient.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(currentPatient)
-  });
-}
-
-/* ------------ CHAT ------------ */
-function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const message = input.value.trim();
-  if (!message) return;
-
-  addUserMessage(message);
-
-  // Fake AI response
-  setTimeout(() => {
-    addAIMessage("Hello Doctor! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.");
-  }, 600);
-
-  input.value = "";
-}
-
-function addUserMessage(msg) {
-  const div = document.createElement("div");
-  div.className = "chat-message user";
-  div.innerText = msg;
-  document.getElementById("chatBox").appendChild(div);
-  scrollChat();
-}
-
-function addAIMessage(msg) {
-  const div = document.createElement("div");
-  div.className = "chat-message ai";
-  div.innerText = msg;
-  document.getElementById("chatBox").appendChild(div);
-  scrollChat();
-}
-
-function scrollChat() {
-  const chatBox = document.getElementById("chatBox");
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-/* ------------ FORM ------------ */
-function showForm() {
-  document.getElementById("patientForm").style.display = "block";
 }
 
 function closeForm() {
-  document.getElementById("patientForm").style.display = "none";
+  document.getElementById("form").classList.remove("active");
 }
 
-/* ------------ INIT ------------ */
-window.onload = loadPatients;
+function addPatient() {
+  const name = document.getElementById("patientName").value;
+  if (name) {
+    patients.push({ name, tests: [], notes: [], medicines: [] });
+    saveData();
+    renderPatients();
+    closeForm();
+  }
+}
+
+function addTest() {
+  const test = document.getElementById("testName").value;
+  if (test && selectedPatient !== null) {
+    patients[selectedPatient].tests.push(test);
+    saveData();
+    selectPatient(selectedPatient);
+    closeForm();
+  }
+}
+
+function deleteTest(pIdx, tIdx) {
+  patients[pIdx].tests.splice(tIdx, 1);
+  saveData();
+  selectPatient(pIdx);
+}
+
+function addNote() {
+  const note = document.getElementById("noteText").value;
+  if (note && selectedPatient !== null) {
+    patients[selectedPatient].notes.push(note);
+    saveData();
+    selectPatient(selectedPatient);
+    closeForm();
+  }
+}
+
+function deleteNote(pIdx, nIdx) {
+  patients[pIdx].notes.splice(nIdx, 1);
+  saveData();
+  selectPatient(pIdx);
+}
+
+function addMedicine() {
+  const medicine = document.getElementById("medicineText").value;
+  if (medicine && selectedPatient !== null) {
+    patients[selectedPatient].medicines.push(medicine);
+    saveData();
+    selectPatient(selectedPatient);
+    closeForm();
+  }
+}
+
+function deleteMedicine(pIdx, mIdx) {
+  patients[pIdx].medicines.splice(mIdx, 1);
+  saveData();
+  selectPatient(pIdx);
+}
+
+function addAIMessage(msg) {
+  const chatBox = document.getElementById("chatBox");
+  const div = document.createElement("div");
+  div.className = "chat-message ai";
+  div.innerText = msg;
+  chatBox.appendChild(div);
+}
+
+function addUserMessage(msg) {
+  const chatBox = document.getElementById("chatBox");
+  const div = document.createElement("div");
+  div.className = "chat-message user";
+  div.innerText = msg;
+  chatBox.appendChild(div);
+}
+
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addUserMessage(msg);
+  input.value = "";
+
+  setTimeout(() => {
+    addAIMessage("Hello Doctor! I am your AI assistant. You can ask me about your risk, medicines, recent notes, or tests.");
+  }, 500);
+}
+
+renderPatients();
