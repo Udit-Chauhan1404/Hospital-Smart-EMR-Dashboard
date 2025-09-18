@@ -3,137 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart EMR Dashboard</title>
+<title>Hospital EMR Dashboard</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Loader -->
-  <div id="loader" class="loader">Loading...</div>
+
+<div class="menu-btn" onclick="toggleSidebar()">☰</div>
+
+<div class="container">
 
   <!-- Sidebar -->
   <div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      <h2>EMR Patients</h2>
-      <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-    </div>
-    <input type="text" id="search" placeholder="Search patients..." oninput="renderPatientList()">
+    <h2>🏥 EMR Patients</h2>
+    <input type="text" id="search" placeholder="🔍 Search..." oninput="renderPatientList()">
     <div id="patientList" class="patient-list"></div>
-    <button class="add-btn" onclick="openAddPatient()">+ Add Patient</button>
+    <button onclick="openAddPatient()" class="btn full">+ Add Patient</button>
   </div>
 
-  <!-- Main Content -->
+  <!-- Main Dashboard -->
   <div class="main">
-    <!-- Placeholder -->
     <div id="placeholder" class="placeholder">
-      <h1>Welcome to Smart EMR Dashboard</h1>
-      <p>Select a patient from the sidebar to view details.</p>
+      <h2>👈 Select a patient from the sidebar</h2>
     </div>
-
-    <!-- Dashboard -->
     <div id="dashboard" class="dashboard" style="display:none;">
-      <div class="patient-info">
+
+      <!-- Patient Header -->
+      <div class="patient-header card">
         <h2 id="d_name"></h2>
         <p id="d_meta"></p>
-        <p>MRN: <span id="d_mrn"></span></p>
-        <p>Condition: <span id="d_cond"></span></p>
-        <p>Risk: <span id="d_risk"></span></p>
+        <p><b>MRN:</b> <span id="d_mrn"></span> | <b>Risk:</b> <span id="d_risk"></span></p>
+        <p><b>Conditions:</b> <span id="d_cond"></span></p>
       </div>
 
       <!-- Charts -->
-      <div class="vitals">
-        <label for="vitalSelect">Select Vitals:</label>
+      <div class="charts-container card">
+        <h3>📊 Vitals & Trends</h3>
+        <label for="vitalSelect"><strong>Select Vital:</strong></label>
         <select id="vitalSelect" onchange="renderCharts()">
           <option value="all">All</option>
           <option value="glucose">Glucose</option>
-          <option value="BP">Blood Pressure</option>
           <option value="cholesterol">Cholesterol</option>
+          <option value="BP">Blood Pressure</option>
         </select>
         <canvas id="vitalsChart"></canvas>
       </div>
 
-      <!-- Tabs -->
-      <div class="tabs">
-        <div class="tab">
-          <h3>Tests <button onclick="openAddTest()">+ Add</button></h3>
-          <div id="testsList" class="tab-content"></div>
+      <!-- Tests / Notes / Medicines -->
+      <div class="tests-notes">
+        <div class="tests card">
+          <h3>🧪 Tests</h3>
+          <div id="testsList"></div>
+          <button class="btn small" onclick="openAddTest()">+ Add Test</button>
         </div>
-        <div class="tab">
-          <h3>Notes <button onclick="openAddNote()">+ Add</button></h3>
-          <div id="notesList" class="tab-content"></div>
+
+        <div class="notes card">
+          <h3>📝 Notes</h3>
+          <div id="notesList" class="notes-list"></div>
+          <div class="note-actions">
+            <button class="btn small" onclick="openAddNote()">+ Add Note</button>
+            <button class="btn small danger" onclick="deleteLastNote()">🗑 Delete Last</button>
+          </div>
         </div>
-        <div class="tab">
-          <h3>Medicines <button onclick="openAddMedicine()">+ Add</button></h3>
-          <ul id="medList" class="tab-content"></ul>
+
+        <div class="meds card">
+          <h3>💊 Medicines</h3>
+          <ul id="medList"></ul>
+          <button class="btn small" onclick="openAddMedicine()">+ Add Medicine</button>
         </div>
-        <div class="tab">
-          <h3>Insights</h3>
-          <div id="insightsContent" class="tab-content"></div>
+      </div>
+
+      <!-- AI Insights -->
+      <div id="insightsArea" class="insights card">
+        <h3>🤖 AI Insights</h3>
+        <div id="insightsContent"></div>
+      </div>
+
+      <!-- AI Chat -->
+<div class="ai-chat card">
+  <h3>💬 AI Assistant</h3>
+  <div id="chatBox" class="chat-box"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Ask AI..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn small" onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+      <!-- AI Lab -->
+      <div class="ai-lab card">
+        <h3>🧠 AI Lab</h3>
+        <div id="aiLabContent">
+          <div id="aiLabResult" class="ai-lab-result"></div>
         </div>
       </div>
 
       <!-- Timeline -->
-      <div class="timeline-section">
-        <h3>Timeline</h3>
+      <div class="timeline-container card">
+        <h3>📅 Patient Timeline</h3>
         <ul id="timeline" class="timeline"></ul>
       </div>
 
-      <!-- AI Chat -->
-      <div class="chat-section">
-        <h3>AI Assistant</h3>
-        <div id="chatBox" class="chat-box"></div>
-        <input type="text" id="chatInput" placeholder="Ask something..." onkeydown="if(event.key==='Enter') sendChat()">
-        <button onclick="sendChat()">Send</button>
-      </div>
     </div>
   </div>
+</div>
 
-  <!-- Modals -->
-  <div id="addPatientCard" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeAddPatient()">&times;</span>
-      <h3>Add Patient</h3>
-      <input id="newName" placeholder="Name">
-      <input id="newAge" placeholder="Age" type="number">
-      <input id="newGender" placeholder="Gender">
-      <input id="newCond" placeholder="Condition">
-      <button onclick="addPatientFromForm()">Add</button>
-    </div>
+<!-- Modals -->
+<div id="addPatientCard" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddPatient()">&times;</span>
+    <h3>Add Patient</h3>
+    <input type="text" id="newName" placeholder="Full Name">
+    <input type="number" id="newAge" placeholder="Age">
+    <select id="newGender">
+      <option value="">Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+    <input type="text" id="newCond" placeholder="Condition(s)">
+    <button class="btn" onclick="addPatientFromForm()">Add Patient</button>
   </div>
+</div>
 
-  <div id="formAddTest" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeAddTest()">&times;</span>
-      <h3>Add Test</h3>
-      <input id="testType" placeholder="Type (glucose/BP/cholesterol)">
-      <input id="testValue" placeholder="Value" type="number">
-      <input id="testNote" placeholder="Note">
-      <input id="testDate" type="date">
-      <button onclick="addTestToActive()">Add Test</button>
-    </div>
+<div id="formAddTest" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddTest()">&times;</span>
+    <h3>Add Test</h3>
+    <select id="testType">
+      <option value="">Select Test</option>
+      <option value="glucose">Glucose</option>
+      <option value="BP">Blood Pressure</option>
+      <option value="cholesterol">Cholesterol</option>
+    </select>
+    <input type="number" id="testValue" placeholder="Value">
+    <input type="text" id="testNote" placeholder="Note">
+    <input type="date" id="testDate">
+    <button class="btn" onclick="addTestToActive()">Add Test</button>
   </div>
+</div>
 
-  <div id="formAddNote" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeAddNote()">&times;</span>
-      <h3>Add Note</h3>
-      <textarea id="noteText" placeholder="Enter note"></textarea>
-      <button onclick="addNoteToActive()">Add Note</button>
-    </div>
+<div id="formAddNote" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddNote()">&times;</span>
+    <h3>Add Note</h3>
+    <textarea id="noteText" placeholder="Enter note"></textarea>
+    <button class="btn" onclick="addNoteToActive()">Add Note</button>
   </div>
+</div>
 
-  <div id="formAddMedicine" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeAddMedicine()">&times;</span>
-      <h3>Add Medicine</h3>
-      <input id="medName" placeholder="Medicine Name">
-      <input id="medDose" placeholder="Dose">
-      <input id="medFreq" placeholder="Frequency">
-      <input id="medDuration" placeholder="Duration">
-      <button onclick="addMedicineToActive()">Add Medicine</button>
-    </div>
+<div id="formAddMedicine" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddMedicine()">&times;</span>
+    <h3>Add Medicine</h3>
+    <input type="text" id="medName" placeholder="Medicine Name">
+    <input type="text" id="medDose" placeholder="Dosage (e.g., 500mg)">
+    <input type="text" id="medFreq" placeholder="Frequency (e.g., Twice Daily)">
+    <button class="btn" onclick="addMedicineToActive()">Add Medicine</button>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
