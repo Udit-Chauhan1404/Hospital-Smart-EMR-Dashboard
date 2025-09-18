@@ -28,6 +28,7 @@ body {
   padding: 10px;
   margin: 5px 0;
   cursor: pointer;
+  border-radius: 5px;
 }
 
 #main {
@@ -45,13 +46,14 @@ body {
   border-radius: 10px;
   display: none;
   z-index: 1000;
+  width: 300px;
 }
 
 .form-card.active {
   display: block;
 }
 
-.charts, .tests, .notes, .medicines, .insights, .timeline, .chat {
+.charts, .tests, .notes, .medicines, .timeline, .chat {
   margin-bottom: 20px;
 }
 
@@ -82,4 +84,5 @@ button {
   padding: 5px 10px;
   margin: 5px 0;
   cursor: pointer;
+  border-radius: 5px;
 }
