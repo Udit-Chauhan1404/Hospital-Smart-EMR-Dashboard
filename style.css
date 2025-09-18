@@ -1,85 +1,208 @@
+/* General */
 body {
-  font-family: 'Poppins', sans-serif;
   margin: 0;
+  font-family: 'Poppins', sans-serif;
   display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f7f9fc;
+  color: #222;
 }
 
+/* Sidebar */
 #sidebar {
   width: 250px;
   background: #071428;
-  color: white;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+#sidebar h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
 }
 
 #sidebar input {
-  padding: 5px;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 5px;
 }
 
-#patientList {
-  overflow-y: auto;
-  flex: 1;
-}
-
-.patient-card {
-  background: #1a1f36;
+#sidebar button {
+  width: 100%;
   padding: 10px;
-  margin: 5px 0;
+  margin-top: 10px;
+  background: #2e8bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
 }
 
+#sidebar button:hover {
+  background: #1a6ed8;
+}
+
+#patientList {
+  margin-bottom: 20px;
+}
+
+.patient-card {
+  background: #fff;
+  color: #222;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.patient-card:hover {
+  background: #e0e8ff;
+}
+
+/* Main content */
 #main {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
 }
 
-.form-card {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  background: #fff; color:#000;
-  padding: 20px;
+#placeholder {
+  font-size: 18px;
+  color: #888;
+  text-align: center;
+  margin-top: 100px;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+h2 {
+  margin-top: 25px;
+  font-size: 18px;
+}
+
+/* Sections */
+.charts, .tests, .notes, .medicines, .insights, .ailab, .timeline, .chat {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff;
   border-radius: 10px;
-  display: none;
-  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.form-card.active {
-  display: block;
+.tests button, .notes button, .medicines button {
+  margin-right: 10px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2e8bff;
+  color: white;
+  cursor: pointer;
 }
 
-.charts, .tests, .notes, .medicines, .insights, .timeline, .chat {
-  margin-bottom: 20px;
+.tests button:hover, .notes button:hover, .medicines button:hover {
+  background: #1a6ed8;
 }
 
+/* Lists */
+#testsList, #notesList, #medList, #timeline {
+  margin-top: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+#testsList div, #notesList div, #medList li, #timeline li {
+  background: #f4f6fb;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+/* Timeline */
+#timeline li::before {
+  content: "•";
+  color: #2e8bff;
+  margin-right: 8px;
+}
+
+/* Chat */
 .chat-box {
-  height: 150px;
+  height: 200px;
   overflow-y: auto;
   border: 1px solid #ccc;
-  padding: 5px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 10px;
 }
 
-.chat-message.user {
-  text-align: right;
-  background: #d1e7dd;
-  margin: 5px 0;
-  padding: 5px;
-  border-radius: 5px;
+.chat-message {
+  margin-bottom: 8px;
 }
 
-.chat-message.ai {
-  text-align: left;
-  background: #f8d7da;
-  margin: 5px 0;
-  padding: 5px;
-  border-radius: 5px;
+/* Forms */
+.form-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  width: 300px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 999;
 }
 
-button {
-  padding: 5px 10px;
-  margin: 5px 0;
+.form-card h3 {
+  margin-top: 0;
+}
+
+.form-card input, .form-card textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.form-card button {
+  padding: 8px 12px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 6px;
+  background: #2e8bff;
+  color: white;
   cursor: pointer;
+}
+
+.form-card button:hover {
+  background: #1a6ed8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  #sidebar {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #main {
+    padding: 15px;
+  }
 }
