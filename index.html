@@ -1,129 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hospital EMR Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital EMR Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <input type="text" id="search" placeholder="Search patients..." oninput="renderPatientList()">
-    <div id="patientList"></div>
-    <button onclick="openAddPatient()">Add Patient</button>
+<!-- Sidebar -->
+<div id="sidebar">
+  <h2>EMR Patients</h2>
+  <input type="text" id="search" placeholder="Search patient" oninput="renderPatientList()">
+  <div id="patientList"></div>
+  <button onclick="openAddPatient()">Add Patient</button>
+</div>
+
+<!-- Main Dashboard -->
+<div id="main">
+  <div id="placeholder">
+    <h2>Select a patient from the sidebar</h2>
   </div>
 
-  <!-- Main dashboard -->
-  <div id="main">
-    <div id="placeholder">
-      <h2>Select a patient from the sidebar</h2>
+  <div id="dashboard" style="display:none;">
+    <h2 id="d_name"></h2>
+    <p id="d_meta"></p>
+    <p>MRN: <span id="d_mrn"></span></p>
+    <p>Condition: <span id="d_cond"></span></p>
+    <p>Risk: <span id="d_risk"></span>%</p>
+
+    <!-- Charts -->
+    <div class="charts">
+      <label for="vitalSelect">Select Vital:</label>
+      <select id="vitalSelect" onchange="renderCharts()">
+        <option value="all">All</option>
+        <option value="glucose">Glucose</option>
+        <option value="cholesterol">Cholesterol</option>
+        <option value="BP">BP</option>
+      </select>
+      <canvas id="vitalsChart"></canvas>
     </div>
 
-    <div id="dashboard" style="display:none">
-      <h2 id="d_name"></h2>
-      <p id="d_meta"></p>
-      <p>MRN: <span id="d_mrn"></span></p>
-      <p>Condition: <span id="d_cond"></span></p>
-      <p>Risk: <span id="d_risk"></span></p>
+    <!-- Tests Section -->
+    <div class="tests">
+      <h2>Tests</h2>
+      <div id="testsList"></div>
+      <button onclick="openAddTest()">Add Test</button>
+      <button onclick="deleteLastTest()">Delete Last Test</button>
+    </div>
 
-      <!-- Charts -->
-      <div class="charts">
-        <label for="vitalSelect">Select Vital:</label>
-        <select id="vitalSelect" onchange="renderCharts()">
-          <option value="all">All</option>
-          <option value="glucose">Glucose</option>
-          <option value="cholesterol">Cholesterol</option>
-          <option value="BP">BP</option>
-        </select>
-        <canvas id="vitalsChart"></canvas>
-      </div>
+    <!-- Notes Section -->
+    <div class="notes">
+      <h2>Notes</h2>
+      <div id="notesList"></div>
+      <button onclick="openAddNote()">Add Note</button>
+    </div>
 
-      <!-- Tests -->
-      <div class="tests">
-        <h3>Tests</h3>
-        <div id="testsList"></div>
-        <button onclick="openAddTest()">Add Test</button>
-      </div>
+    <!-- Medicines Section -->
+    <div class="medicines">
+      <h2>Medicines</h2>
+      <ul id="medList"></ul>
+      <button onclick="openAddMedicine()">Add Medicine</button>
+    </div>
 
-      <!-- Notes -->
-      <div class="notes">
-        <h3>Notes</h3>
-        <div id="notesList"></div>
-        <button onclick="openAddNote()">Add Note</button>
-        <button onclick="deleteLastNote()">Delete Last Note</button>
-      </div>
+    <!-- AI Insights -->
+    <div class="insights">
+      <h2>AI Insights</h2>
+      <div id="insightsContent"></div>
+    </div>
 
-      <!-- Medicines -->
-      <div class="medicines">
-        <h3>Medicines</h3>
-        <ul id="medList"></ul>
-        <button onclick="openAddMedicine()">Add Medicine</button>
-      </div>
+    <!-- Timeline -->
+    <div class="timeline">
+      <h2>Timeline</h2>
+      <ul id="timeline"></ul>
+    </div>
 
-      <!-- AI Insights -->
-      <div class="insights">
-        <h3>AI Insights</h3>
-        <div id="insightsContent"></div>
-      </div>
-
-      <!-- Timeline -->
-      <div class="timeline">
-        <h3>Timeline</h3>
-        <ul id="timeline"></ul>
-      </div>
-
-      <!-- Chat -->
-      <div class="chat">
-        <h3>AI Assistant</h3>
-        <div id="chatBox" class="chat-box"></div>
-        <input type="text" id="chatInput" placeholder="Type a message...">
-        <button onclick="sendChat()">Send</button>
-      </div>
+    <!-- AI Chat -->
+    <div class="chat">
+      <h2>AI Chat</h2>
+      <div id="chatBox" class="chat-box"></div>
+      <input type="text" id="chatInput" placeholder="Type message">
+      <button onclick="sendChat()">Send</button>
     </div>
   </div>
+</div>
 
-  <!-- Forms -->
-  <div id="addPatientCard" class="form-card">
-    <h3>Add Patient</h3>
-    <input id="newName" placeholder="Name">
-    <input id="newAge" placeholder="Age">
-    <input id="newGender" placeholder="Gender">
-    <input id="newCond" placeholder="Condition">
+<!-- Add Patient Form -->
+<div id="addPatientCard" class="form-card">
+  <h3>Add Patient</h3>
+  <label>Name:</label><input type="text" id="newName">
+  <label>Age:</label><input type="number" id="newAge">
+  <label>Gender:</label>
+  <select id="newGender">
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Other">Other</option>
+  </select>
+  <label>Condition:</label><input type="text" id="newCond">
+  <div>
     <button onclick="addPatientFromForm()">Add</button>
-    <button onclick="closeAddPatient()">Close</button>
+    <button onclick="closeAddPatient()">Cancel</button>
   </div>
+</div>
 
-  <div id="formAddTest" class="form-card">
-    <h3>Add Test</h3>
-    <input id="testType" placeholder="Test Type">
-    <input id="testValue" placeholder="Value">
-    <input id="testNote" placeholder="Note">
-    <input id="testDate" type="date">
+<!-- Add Test Form -->
+<div id="formAddTest" class="form-card">
+  <h3>Add Test</h3>
+  <label>Type:</label><input type="text" id="testType" placeholder="e.g., glucose">
+  <label>Value:</label><input type="number" id="testValue">
+  <label>Note:</label><input type="text" id="testNote">
+  <label>Date:</label><input type="date" id="testDate">
+  <div>
     <button onclick="addTestToActive()">Add</button>
-    <button onclick="closeAddTest()">Close</button>
+    <button onclick="closeAddTest()">Cancel</button>
   </div>
+</div>
 
-  <div id="formAddNote" class="form-card">
-    <h3>Add Note</h3>
-    <textarea id="noteText" placeholder="Write note"></textarea>
+<!-- Add Note Form -->
+<div id="formAddNote" class="form-card">
+  <h3>Add Note</h3>
+  <textarea id="noteText"></textarea>
+  <div>
     <button onclick="addNoteToActive()">Add</button>
-    <button onclick="closeAddNote()">Close</button>
+    <button onclick="closeAddNote()">Cancel</button>
   </div>
+</div>
 
-  <div id="formAddMedicine" class="form-card">
-    <h3>Add Medicine</h3>
-    <input id="medName" placeholder="Name">
-    <input id="medDose" placeholder="Dose">
-    <input id="medFreq" placeholder="Frequency">
-    <input id="medDuration" placeholder="Duration">
+<!-- Add Medicine Form -->
+<div id="formAddMedicine" class="form-card">
+  <h3>Add Medicine</h3>
+  <label>Name:</label><input type="text" id="medName">
+  <label>Dose:</label><input type="text" id="medDose">
+  <label>Frequency:</label><input type="text" id="medFreq">
+  <label>Duration:</label><input type="text" id="medDuration">
+  <div>
     <button onclick="addMedicineToActive()">Add</button>
-    <button onclick="closeAddMedicine()">Close</button>
+    <button onclick="closeAddMedicine()">Cancel</button>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
