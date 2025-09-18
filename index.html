@@ -8,56 +8,76 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<div id="sidebar" class="sidebar">
-    <h2>Patients</h2>
-    <input type="text" id="search" placeholder="Search patient..." oninput="renderPatientList()">
+<div id="sidebar">
+    <div class="logo">EMR Patients</div>
+    <input type="text" id="search" placeholder="Search patients" oninput="renderPatientList()">
     <div id="patientList"></div>
     <button onclick="openAddPatient()">Add Patient</button>
 </div>
 
 <div id="main">
-    <div id="placeholder">Select a patient from the sidebar...</div>
-
+    <div id="placeholder">Select a patient to open dashboard</div>
+    
     <div id="dashboard" style="display:none;">
-        <h2 id="d_name"></h2>
-        <p id="d_meta"></p>
-        <p>MRN: <span id="d_mrn"></span></p>
-        <p>Condition: <span id="d_cond"></span></p>
-        <p>Risk: <span id="d_risk"></span></p>
+        <div class="patient-info">
+            <h2 id="d_name"></h2>
+            <p id="d_meta"></p>
+            <p>MRN: <span id="d_mrn"></span></p>
+            <p>Condition: <span id="d_cond"></span></p>
+            <p>Risk: <span id="d_risk"></span></p>
+        </div>
+        
+        <div class="charts">
+            <select id="vitalSelect" onchange="renderCharts()">
+                <option value="all">All</option>
+                <option value="glucose">Glucose</option>
+                <option value="cholesterol">Cholesterol</option>
+                <option value="BP">BP</option>
+            </select>
+            <canvas id="vitalsChart"></canvas>
+        </div>
 
-        <canvas id="vitalsChart"></canvas>
-        <select id="vitalSelect" onchange="renderCharts()">
-            <option value="all">All</option>
-            <option value="glucose">Glucose</option>
-            <option value="BP">Blood Pressure</option>
-            <option value="cholesterol">Cholesterol</option>
-        </select>
+        <div class="tests">
+            <h3>Tests</h3>
+            <div id="testsList"></div>
+            <button onclick="openAddTest()">Add Test</button>
+            <button onclick="deleteLastTest()">Delete Last Test</button>
+        </div>
 
-        <h3>Tests <button onclick="openAddTest()">Add Test</button> <button onclick="deleteLastTest()">Delete Last Test</button></h3>
-        <div id="testsList"></div>
+        <div class="notes">
+            <h3>Notes</h3>
+            <div id="notesList"></div>
+            <button onclick="openAddNote()">Add Note</button>
+            <button onclick="deleteLastNote()">Delete Last Note</button>
+        </div>
 
-        <h3>Notes <button onclick="openAddNote()">Add Note</button> <button onclick="deleteLastNote()">Delete Last Note</button></h3>
-        <div id="notesList"></div>
+        <div class="medicines">
+            <h3>Medicines</h3>
+            <ul id="medList"></ul>
+            <button onclick="openAddMedicine()">Add Medicine</button>
+        </div>
 
-        <h3>Medicines <button onclick="openAddMedicine()">Add Medicine</button></h3>
-        <ul id="medList"></ul>
+        <div class="insights">
+            <h3>AI Insights</h3>
+            <div id="insightsContent"></div>
+        </div>
 
-        <h3>AI Insights</h3>
-        <div id="insightsContent"></div>
-        <div id="aiLabResult"></div>
+        <div class="timeline">
+            <h3>Timeline</h3>
+            <ul id="timeline"></ul>
+        </div>
 
-        <h3>Timeline</h3>
-        <ul id="timeline"></ul>
-
-        <h3>AI Chat</h3>
-        <div id="chatBox"></div>
-        <input type="text" id="chatInput" placeholder="Type a message">
-        <button onclick="sendChat()">Send</button>
+        <div class="chat">
+            <h3>AI Chat</h3>
+            <div id="chatBox" class="chat-box"></div>
+            <input type="text" id="chatInput" placeholder="Ask a question...">
+            <button onclick="sendChat()">Send</button>
+        </div>
     </div>
 </div>
 
-<!-- Add Patient Form -->
-<div id="addPatientCard" class="modal">
+<!-- Forms -->
+<div id="addPatientCard" class="form-card">
     <h3>Add Patient</h3>
     <input type="text" id="newName" placeholder="Name">
     <input type="number" id="newAge" placeholder="Age">
@@ -67,10 +87,9 @@
     <button onclick="closeAddPatient()">Cancel</button>
 </div>
 
-<!-- Add Test Form -->
-<div id="formAddTest" class="modal">
+<div id="formAddTest" class="form-card">
     <h3>Add Test</h3>
-    <input type="text" id="testType" placeholder="Test Type">
+    <input type="text" id="testType" placeholder="Type (glucose/BP/etc.)">
     <input type="number" id="testValue" placeholder="Value">
     <input type="text" id="testNote" placeholder="Note">
     <input type="date" id="testDate">
@@ -78,21 +97,19 @@
     <button onclick="closeAddTest()">Cancel</button>
 </div>
 
-<!-- Add Note Form -->
-<div id="formAddNote" class="modal">
+<div id="formAddNote" class="form-card">
     <h3>Add Note</h3>
     <textarea id="noteText" placeholder="Note text"></textarea>
     <button onclick="addNoteToActive()">Add Note</button>
     <button onclick="closeAddNote()">Cancel</button>
 </div>
 
-<!-- Add Medicine Form -->
-<div id="formAddMedicine" class="modal">
+<div id="formAddMedicine" class="form-card">
     <h3>Add Medicine</h3>
     <input type="text" id="medName" placeholder="Name">
     <input type="text" id="medDose" placeholder="Dose">
     <input type="text" id="medFreq" placeholder="Frequency">
-    <input type="text" id="medDuration" placeholder="Duration">
+    <input type="text" id="medDuration" placeholder="Duration (optional)">
     <button onclick="addMedicineToActive()">Add Medicine</button>
     <button onclick="closeAddMedicine()">Cancel</button>
 </div>
